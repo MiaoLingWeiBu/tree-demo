@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+    <style>
+        .el-header {
+            background-color: #B3C0D1;
+            color: #333;
+            line-height: 60px;
+        }
+
+        .el-aside {
+            color: #333;
+        }
+
+        .custom-tree-node {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 14px;
+            padding-right: 8px;
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <el-container style="height: 700px; border: 1px solid #eee">
+        <el-aside width="200px" style="background-color: rgb(238, 241, 246)">
+            <el-menu :default-openeds="['1', '3']">
+                <el-submenu index="1">
+                    <template slot="title"><i class="el-icon-message"></i>导航一</template>
+                    <el-menu-item-group>
+                        <template slot="title">分组一</template>
+                        <el-menu-item index="1-1">选项1</el-menu-item>
+                        <el-menu-item index="1-2">选项2</el-menu-item>
+                    </el-menu-item-group>
+                    <el-menu-item-group title="分组2">
+                        <el-menu-item index="1-3">选项3</el-menu-item>
+                    </el-menu-item-group>
+                    <el-submenu index="1-4">
+                        <template slot="title">选项4</template>
+                        <el-menu-item index="1-4-1">选项4-1</el-menu-item>
+                    </el-submenu>
+                </el-submenu>
+                <el-submenu index="2">
+                    <template slot="title"><i class="el-icon-menu"></i>导航二</template>
+                    <el-menu-item-group>
+                        <template slot="title">分组一</template>
+                        <el-menu-item index="2-1">选项1</el-menu-item>
+                        <el-menu-item index="2-2">选项2</el-menu-item>
+                    </el-menu-item-group>
+                    <el-menu-item-group title="分组2">
+                        <el-menu-item index="2-3">选项3</el-menu-item>
+                    </el-menu-item-group>
+                    <el-submenu index="2-4">
+                        <template slot="title">选项4</template>
+                        <el-menu-item index="2-4-1">选项4-1</el-menu-item>
+                    </el-submenu>
+                </el-submenu>
+                <el-submenu index="3">
+                    <template slot="title"><i class="el-icon-setting"></i>导航三</template>
+                    <el-menu-item-group>
+                        <template slot="title">分组一</template>
+                        <el-menu-item index="3-1">选项1</el-menu-item>
+                        <el-menu-item index="3-2">选项2</el-menu-item>
+                    </el-menu-item-group>
+                    <el-menu-item-group title="分组2">
+                        <el-menu-item index="3-3">选项3</el-menu-item>
+                    </el-menu-item-group>
+                    <el-submenu index="3-4">
+                        <template slot="title">选项4</template>
+                        <el-menu-item index="3-4-1">选项4-1</el-menu-item>
+                    </el-submenu>
+                </el-submenu>
+            </el-menu>
+        </el-aside>
+
+        <el-container>
+            <el-header style="text-align: right; font-size: 12px">
+                <el-dropdown>
+                    <i class="el-icon-setting" style="margin-right: 15px"></i>
+                    <el-dropdown-menu slot="dropdown">
+                        <el-dropdown-item>查看</el-dropdown-item>
+                        <el-dropdown-item>新增</el-dropdown-item>
+                        <el-dropdown-item>删除</el-dropdown-item>
+                    </el-dropdown-menu>
+                </el-dropdown>
+                <span>王小虎</span>
+            </el-header>
+
+            <el-main>
+                <template>
+                    <div>
+                        <el-input v-model="input"
+                                  style="width:200px"
+                                  placeholder="请输入内容"></el-input>
+
+                        <el-button type="primary"
+                                   :disabled='isDisabled'
+                                   @click='addSort'>添加节点</el-button>
+
+                        <span>当前目录:</span>
+
+                        <span>当前目录的父级目录:</span>
+
+                        <el-tree :data="data"
+                                 :props="defaultProps"
+                                 accordion
+                                 @node-click="handleNodeClick"></el-tree>
+                    </div>
+                </template>
+
+
+            </el-main>
+        </el-container>
+    </el-container>
+</div>
+
+<link rel="stylesheet" href="element-ui/lib/theme-chalk/index.css">
+<script src="js/vue.js"></script>
+<script src="js/axios-0.18.0.js"></script>
+<script src="element-ui/lib/index.js"></script>
+
+<script>
+    let id = 1000;
+
+    new Vue ({
+
+        el:"#app",
+        mounted(){
+            this.selectAll();
+        },
+        methods: {
+            selectAll(){
+                var _this=this;
+                axios({
+                    method:"get",
+                    url:"http://localhost:8080/trees"
+                }).then(resp=>{
+                    _this.data=resp.data.data;
+                })
+            },
+            // 点击节点
+            handleNodeClick(nodes, node, self) {
+                this.nowClickNode = node;
+            },
+            // 添加节点
+            addSort() {
+                const data = {
+                    label: '草莓',
+                };
+                this.$refs.tree.append(data, this.nowClickNode);
+            },
+            append(data) {
+                const newChild = { id: id++, label: 'testtest', children: [] };
+                if (!data.children) {
+                    this.$set(data, 'children', []);
+                }
+                data.children.push(newChild);
+            },
+
+            remove(node, data) {
+                const parent = node.parent;
+                const children = parent.data.children || parent.data;
+                const index = children.findIndex(d => d.id === data.id);
+                children.splice(index, 1);
+            },
+        },
+        data() {
+            const data = [{
+                id: 1,
+                label: '一级 1',
+                children: [{
+                    id: 4,
+                    label: '二级 1-1',
+                    children: [{
+                        id: 9,
+                        label: '三级 1-1-1'
+                    }, {
+                        id: 10,
+                        label: '三级 1-1-2'
+                    }]
+                }]
+            }, {
+                id: 2,
+                label: '一级 2',
+                children: [{
+                    id: 5,
+                    label: '二级 2-1'
+                }, {
+                    id: 6,
+                    label: '二级 2-2'
+                }]
+            }, {
+                id: 3,
+                label: '一级 3',
+                children: [{
+                    id: 7,
+                    label: '二级 3-1'
+                }, {
+                    id: 8,
+                    label: '二级 3-2'
+                }]
+            }];
+            return {
+                data: JSON.parse(JSON.stringify(data))
+            }
+        },
+
+
+
+
+    });
+</script>
+
+</body>
+</html>
